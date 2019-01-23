@@ -2,6 +2,7 @@
 
 // load modules
 const express = require('express');
+const mongoose = require("mongoose");
 const morgan = require('morgan');
 
 // variable to enable global error logging
@@ -9,6 +10,39 @@ const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'tr
 
 // create the Express app
 const app = express();
+
+// conection to mongoose
+mongoose.connect("mongodb://localhost:27017/fsjstd-restapi");
+
+const db = mongoose.connection;
+
+// mongoose connection error handler
+db.on("error", err => console.log("There was a connection error:", err));
+
+//mongoose succesful connection handler
+db.once("open", () => {
+  console.log("Database connection successful");
+
+  const userSchema = new mongoose.Schema({
+    firstName: string,
+    lastName: string,
+    emailAddress: string,
+    password: string
+  });
+
+  const courseSchema = new mongoose.Schema({
+    user: { type: Schema.Types.ObjectId, ref: "User"},
+    title: string,
+    description: string,
+    estimatedtime: string,
+    materialsNeeded: string
+  });
+
+  const User = mongoose.model("User", userSchema);
+  const Course = mongoose.model("Course", courseSchema);
+
+  db.close();
+});
 
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
