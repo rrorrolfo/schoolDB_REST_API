@@ -12,7 +12,7 @@ const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'tr
 const app = express();
 
 // conection to mongoose
-mongoose.connect("mongodb://localhost:27017/fsjstd-restapi");
+mongoose.connect("mongodb://localhost:27017/fsjstd-restapi", { useNewUrlParser: true });
 
 const db = mongoose.connection;
 
@@ -23,23 +23,9 @@ db.on("error", err => console.log("There was a connection error:", err));
 db.once("open", () => {
   console.log("Database connection successful");
 
-  const userSchema = new mongoose.Schema({
-    firstName: string,
-    lastName: string,
-    emailAddress: string,
-    password: string
-  });
+  
 
-  const courseSchema = new mongoose.Schema({
-    user: { type: Schema.Types.ObjectId, ref: "User"},
-    title: string,
-    description: string,
-    estimatedtime: string,
-    materialsNeeded: string
-  });
-
-  const User = mongoose.model("User", userSchema);
-  const Course = mongoose.model("Course", courseSchema);
+  
 
   db.close();
 });
@@ -47,14 +33,23 @@ db.once("open", () => {
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 
-// TODO setup your api routes here
+////////  API routes  ///////// 
 
-// setup a friendly greeting for the root route
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to the REST API project!',
-  });
-});
+  // Requiring route modules
+  const routes = require("./routes");
+  const userRoutes = require("./routes/user");
+  const courseRoutes = require("./routes/course");
+  //root route
+  app.use(routes);
+
+  //user routes
+  app.use("/api", userRoutes);
+
+  //course routes
+  app.use("/api", courseRoutes);
+
+
+///////// ERRORS HANDLING /////////
 
 // send 404 if no other route matched
 app.use((req, res) => {
@@ -74,6 +69,8 @@ app.use((err, req, res, next) => {
     error: {},
   });
 });
+
+/////// SERVER ////////
 
 // set our port
 app.set('port', process.env.PORT || 5000);
