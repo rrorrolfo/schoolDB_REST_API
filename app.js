@@ -3,13 +3,16 @@
 // load modules
 const express = require('express');
 const mongoose = require("mongoose");
+const jsonParser = require("body-parser").json;
 const morgan = require('morgan');
+const { User } = require("./models");
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
 
 // create the Express app
 const app = express();
+app.use(jsonParser());
 
 // conection to mongoose
 mongoose.connect("mongodb://localhost:27017/fsjstd-restapi", { useNewUrlParser: true });
@@ -22,12 +25,6 @@ db.on("error", err => console.log("There was a connection error:", err));
 //mongoose succesful connection handler
 db.once("open", () => {
   console.log("Database connection successful");
-
-  
-
-  
-
-  db.close();
 });
 
 // setup morgan which gives us http request logging

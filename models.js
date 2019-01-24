@@ -1,22 +1,23 @@
 'use strict'
 
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 // User schema
-const userSchema = new mongoose.Schema({
-    firstName: string,
-    lastName: string,
-    emailAddress: string,
-    password: string
+const userSchema = new Schema({
+    firstName: String,
+    lastName: String,
+    emailAddress: String,
+    password: String
   });
 
 // Course schema
-const courseSchema = new mongoose.Schema({
+const courseSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: "User"},
-    title: string,
-    description: string,
-    estimatedtime: string,
-    materialsNeeded: string
+    title: String,
+    description: String,
+    estimatedTime: String,
+    materialsNeeded: String
   });
 
 // Models
