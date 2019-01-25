@@ -19,8 +19,8 @@ router.post("/users", (req, res, next) => {
         if (err) {
             return next(err);
         } else {
-            res.location("/");
             res.status(201);
+            res.location("/");
         }
     });
 
