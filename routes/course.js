@@ -49,10 +49,11 @@ router.post("/courses", (req, res, next) => {
     course.save( (err, course) => {
 
         if (err) {
-            
+
             const errors = err.errors;
             const errorMessages = [];
 
+            // Iterates every error object and pushes the error message to errorMessages array which is then sent to the client in json format
             Object.values(errors).forEach( key => errorMessages.push(key.message));
 
             return res.status(400).json({errors: errorMessages});
