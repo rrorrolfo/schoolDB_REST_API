@@ -47,13 +47,19 @@ router.post("/courses", (req, res, next) => {
     const course = new Course(req.body);
 
     course.save( (err, course) => {
-        if (err) {
-            return next(err);
-        } else {
 
+        if (err) {
+            
+            const errors = err.errors;
+            const errorMessages = [];
+
+            Object.values(errors).forEach( key => errorMessages.push(key.message));
+
+            return res.status(400).json({errors: errorMessages});
+
+        } else {
+            res.location(`/api/courses/${course.id}`);
             res.status(201);
-            // need to set location
-            res.json(course);
         }
 
     });
@@ -68,7 +74,7 @@ router.put("/courses/:cID", (req, res) => {
         if (err) {
             return next(err);
         } else {
-            res.status(204);
+            res.sendStatus(204);
         }
 
     });
@@ -82,7 +88,7 @@ router.delete("/courses/:cID", (req, res) => {
         if (err) {
             return next(err);
         } else {
-            res.status(204);
+            res.sendStatus(204);
         }
     });
 

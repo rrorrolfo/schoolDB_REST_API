@@ -11,16 +11,25 @@ router.get("/users", (req, res) => {
 
 // Creates a user, sets the "Location" header to "/" and returns no content
 router.post("/users", (req, res, next) => {
-
+    
     // Creates a nuew user in the DB 
     const user = new User(req.body);
+
     
+
     user.save( (err, user) => {
         if (err) {
-            return next(err);
+
+            const errors = err.errors;
+            const errorMessages = [];
+
+            Object.values(errors).forEach( key => errorMessages.push(key.message));
+            
+            return res.status(400).json({errors: errorMessages});
+            
         } else {
-            res.status(201);
             res.location("/");
+            res.sendStatus(201);
         }
     });
 
