@@ -6,11 +6,15 @@ const Schema = mongoose.Schema;
 // User schema
 const userSchema = new Schema({
     firstName: { type: String,
-      required: "First Name is required"},
+      required: "First Name is required",
+      trim: true},
     lastName: { type: String,
-      required: "Last Name is required"},
+      required: "Last Name is required",
+      trim: true},
     emailAddress: { type: String,
-      required: "An Email is required"},
+      required: "An Email is required",
+      unique: true,
+      trim: true },
     password: { type: String,
       required: "A Password is required"}
   });
@@ -19,11 +23,15 @@ const userSchema = new Schema({
 const courseSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: "User"},
     title: { type: String,
-      required: "Title is required"},
+      required: "Title is required",
+      trim: true},
     description: { type: String,
-      required: "Description is required"},
-    estimatedTime: String,
-    materialsNeeded: String
+      required: "Description is required",
+      trim: true},
+    estimatedTime: { type: String,
+      trim: true},
+    materialsNeeded: {type: String,
+      trim: true}
   });
 
 // Models
