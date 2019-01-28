@@ -40,11 +40,11 @@ const authenticateUser = (req, res, next) => {
                 next();
             }
 
-        });
+        }); // Finished working with the user to authenticate
 
     } 
 
-}
+} // Finished authentication function
 
 
 // returns the currently authenticated user
@@ -62,26 +62,38 @@ router.post("/users", (req, res, next) => {
     // Creates a nuew user in the DB 
     const user = new User(req.body);
 
-    // Hashes the user´s password before saving user to DB
-    user.password = bcryptjs.hashSync(user.password);
+    // Checks if the email provided exists already in DB
 
-    user.save( (err, user) => {
-        if (err) {
+    User.findOne( {emailAddress: user.emailAddress}, null, (err, userEmail) => {
 
-            const errors = err.errors;
-            const errorMessages = [];
-
-            // Iterates every error object and pushes the error message to errorMessages array which is then sent to the client in json format
-            Object.values(errors).forEach( key => errorMessages.push(key.message));
-            
-            return res.status(400).json({errors: errorMessages});
+        if (userEmail) {
+            err = new Error("Email address already registered");
+            err.status = 500;
+            return next(err);
 
         } else {
+            // Hashes the user´s password before saving user to DB
+            user.password = bcryptjs.hashSync(user.password);
 
-            res.location("/");
-            res.sendStatus(201);
+            user.save( (err, user) => {
+                if (err) {
+
+                    const errors = err.errors;
+                    const errorMessages = [];
+
+                    // Iterates every error object and pushes the error message to errorMessages array which is then sent to the client in json format
+                    Object.values(errors).forEach( key => errorMessages.push(key.message));
+                    
+                    return res.status(400).json({errors: errorMessages});
+
+                } else {
+
+                    res.location("/");
+                    res.sendStatus(201);
+                }
+            }); // Finishes saving new user to DB
         }
-    });
+    }); // Finished middleware
 
 });
 

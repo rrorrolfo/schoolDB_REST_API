@@ -13,8 +13,11 @@ const userSchema = new Schema({
       trim: true},
     emailAddress: { type: String,
       required: "An Email is required",
-      unique: true,
-      trim: true },
+      trim: true,
+      validate: {
+        validator: email => /^[^@]+@[^@.]+\.[a-z]+$/i.test(email),
+        message: "Email needs to have one '@' and a domain"
+      } },
     password: { type: String,
       required: "A Password is required"}
   });
