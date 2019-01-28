@@ -7,49 +7,52 @@ const authenticator = require("basic-auth");
 // Validation middleware
 const authenticateUser = (req, res, next) => {
 
+    // Parses users credentials from Authorization header.
     const credentials = authenticator(req);
     let message = "";
-    console.log(credentials);
 
     if (credentials) {
-
-        const userFound = User.findOne( {emailAddress: credentials.name}, null, {sort: {title: 1}}, (err, user) => {
-
-            console.log(user, 1);
+        // Attemps to find one user from DB that matches the email provided
+        User.findOne( {emailAddress: credentials.name}, null, (err, user) => {
         
                 if (user) {
-                    console.log(user, 2);
-                const authenticated = bcryptjs.compareSync(credentials.pass, user.password);
-                console.log(authenticated, "auth");
+                    // Compares provided password with the one stored in DB for the user found 
+                    const authenticated = bcryptjs.compareSync(credentials.pass, user.password);
 
                     if(authenticated) {
+                        // If the passwords match then the user is stored in the currentUser property of the req object
                         console.log(`Authentication successful for username: ${user.firstName}`);
                         req.currentUser = user;
                         
-                        console.log(req.currentUser,"req.currentUser");
-                    } 
+                    } else {
+                        message = `Authentication failure for email ${user.emailAddress}`;
+                    }
 
-            } 
+                } else {
+                message = `User not found for ${credentials.name}`;
+                }
+
+            // If there is an error, a message is returned and logged to console, status 401 is sent
+            if(message) {
+                console.warn(message);
+                res.status(401).json({message: "Access Denied"});
+            } else {
+                next();
+            }
 
         });
+
     } 
-
-    if(message) {
-        console.warn(message);
-        res.status(401).json({message: "Access Denied"});
-    } else {
-        next();
-    }
-
-    
 
 }
 
-// returns the currently authenticated user
-router.get("/users", authenticateUser, (req, res) => {
 
-    console.log(req.currentUser, "final");
-    res.send("here");
+// returns the currently authenticated user
+router.get("/users",authenticateUser, (req, res, next) => {
+    const authenticatedUser = req.currentUser;
+
+    // Authenticated user
+    res.json( { user: `${authenticatedUser.firstName} ${authenticatedUser.lastName}` });
 });
 
 
