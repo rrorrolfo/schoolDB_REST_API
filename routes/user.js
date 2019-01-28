@@ -63,38 +63,39 @@ router.post("/users", (req, res, next) => {
     const user = new User(req.body);
 
     // Checks if the email provided exists already in DB
-
-    User.findOne( {emailAddress: user.emailAddress}, null, (err, userEmail) => {
+    User.findOne( {emailAddress: user.emailAddress}, null, (error, userEmail) => {
 
         if (userEmail) {
-            err = new Error("Email address already registered");
-            err.status = 500;
-            return next(err);
+            error = new Error("Email address already registered");
+            error.status = 400;
+            return next(error);
+
+        }
+
+    user.save( (err, user) => {
+
+        //checks for validation errors
+        if (err) {
+
+            const errors = err.errors;
+            const errorMessages = [];
+
+            // Iterates every error object and pushes the error message to errorMessages array which is then sent to the client in json format
+            Object.values(errors).forEach( key => errorMessages.push(key.message));
+            
+            return res.status(400).json({errors: errorMessages});
 
         } else {
-            // Hashes the user´s password before saving user to DB
-            user.password = bcryptjs.hashSync(user.password);
 
-            user.save( (err, user) => {
-                if (err) {
+            res.location("/");
+            res.sendStatus(201);
 
-                    const errors = err.errors;
-                    const errorMessages = [];
-
-                    // Iterates every error object and pushes the error message to errorMessages array which is then sent to the client in json format
-                    Object.values(errors).forEach( key => errorMessages.push(key.message));
-                    
-                    return res.status(400).json({errors: errorMessages});
-
-                } else {
-
-                    res.location("/");
-                    res.sendStatus(201);
-                }
-            }); // Finishes saving new user to DB
-        }
+            }
+        
+        }); // Finishes saving new user to DB
+    
     }); // Finished middleware
-
+    
 });
 
 module.exports = router;

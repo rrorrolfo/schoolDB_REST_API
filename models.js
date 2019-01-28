@@ -2,6 +2,7 @@
 
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const bcryptjs = require("bcryptjs");
 
 // User schema
 const userSchema = new Schema({
@@ -17,9 +18,28 @@ const userSchema = new Schema({
       validate: {
         validator: email => /^[^@]+@[^@.]+\.[a-z]+$/i.test(email),
         message: "Email needs to have one '@' and a domain"
-      } },
+        } 
+      },
     password: { type: String,
       required: "A Password is required"}
+  });
+
+  // Hashes the user´s password before saving user to DB
+  userSchema.pre("save", function (next) {
+
+    const user = this;
+
+    bcryptjs.hash(user.password, 10, function (err, hash) {
+
+      if (err) {
+        return next(err);
+      } else {
+        user.password = hash;
+        next();
+      }
+
+    })
+
   });
 
 // Course schema
