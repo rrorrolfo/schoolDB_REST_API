@@ -51,40 +51,47 @@ const authenticateUser = (req, res, next) => {
 
 router.param("cID", (req, res, next, id) => {
 
-    Course.findById(id, (err, course) => {
-        if(err) {
-            return next(err);
-        } else if (!course) {
-            err = new Error("Course not found");
-            err.status = 404;
-            return next(err);
-        } else {
-            // course found is assinged to course key in req object
-            req.course = course;
-            return next();
-        }
-    });
+    Course.findById(id)
+    .populate({ path: "user", select: "firstName lastName"})
+        .exec( (err, course) => {
+
+            if(err) {
+                return next(err);
+            } else if (!course) {
+                err = new Error("Course not found");
+                err.status = 404;
+                return next(err);
+            } else {
+                // course found is assinged to course key in req object
+                req.course = course;
+                return next();
+            }
+
+        })
 
 });
 
-// Returns a list of courses - including the user that owns each course
+// Returns a list of courses - including the user name and last name that owns each course
 router.get("/courses", (req, res, next) => {
+
     Course.find({}, null, {sort: {title: 1}})
-        .populate({ path: "user", select: "firstName lastName -_id"})
+        .populate({ path: "user", select: "firstName lastName"})
         .exec( (err, courses) => {
+
             if(err) {
                 return next(err);
             } else {
                 res.status(200);
                 res.json(courses);
             }
+
         })
-    });
+});
         
         /**/
 
 //Returns a specific course - including the user that owns the course
-router.get("/courses/:cID", (req, res, next) => {
+router.get("/courses/:cID", (req, res) => {
     
     res.status(200);
     res.json(req.course);
@@ -92,7 +99,7 @@ router.get("/courses/:cID", (req, res, next) => {
 });
 
 // Creates a course, sets the Location header to the URI for the course, and returns no content
-router.post("/courses",authenticateUser, (req, res, next) => {
+router.post("/courses",authenticateUser, (req, res) => {
 
     // Sets the user property to the authenticated user that creates the course
     req.body.user = req.currentUser._id;
@@ -121,30 +128,56 @@ router.post("/courses",authenticateUser, (req, res, next) => {
 });
 
 // Updates a course and returns no content
-router.put("/courses/:cID",authenticateUser, (req, res) => {
+router.put("/courses/:cID",authenticateUser, (req, res, next) => {
 
-    req.course.updateOne(req.body, (err) => {
+        // Checks if authenticated user is owner of the course to be able to update it
+        if (JSON.stringify(req.currentUser._id) === JSON.stringify(req.course.user._id)) {
 
-        if (err) {
-            return next(err);
+            req.course.updateOne(req.body, (err) => {
+
+                if (err) {
+                    return next(err);
+                } else {
+                    res.sendStatus(204);
+                }
+        
+            });
+
         } else {
-            res.sendStatus(204);
-        }
 
-    });
+            const error = new Error(`You do not own the requested course: ${req.course.title}`);
+            error.status = 403;
+
+            return next(error);
+
+        }    
     
 });
 
 // Deletes a course and returns no content
-router.delete("/courses/:cID", authenticateUser, (req, res) => {
+router.delete("/courses/:cID", authenticateUser, (req, res, next) => {
+
+    // Checks if authenticated user is owner of the course to be able to delete it
+    if (JSON.stringify(req.currentUser._id) === JSON.stringify(req.course.user._id)) {
+
+        req.course.remove( (err) => {
+            if (err) {
+                return next(err);
+            } else {
+                res.sendStatus(204);
+            }
+        });
+
+    } else {
+
+        const error = new Error(`You do not own the requested course: ${req.course.title}`);
+        error.status = 403;
+
+        return next(error);
+
+    }    
     
-    req.course.remove( (err) => {
-        if (err) {
-            return next(err);
-        } else {
-            res.sendStatus(204);
-        }
-    });
+    
 
 });
 
