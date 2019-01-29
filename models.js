@@ -44,7 +44,7 @@ const userSchema = new Schema({
 
 // Course schema
 const courseSchema = new Schema({
-    user: { type: Schema.Types.ObjectId, ref: "User"},
+    user: { type: Schema.Types.ObjectId, ref: 'User'},
     title: { type: String,
       required: "Title is required",
       trim: true},

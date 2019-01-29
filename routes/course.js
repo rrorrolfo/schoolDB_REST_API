@@ -69,15 +69,19 @@ router.param("cID", (req, res, next, id) => {
 
 // Returns a list of courses - including the user that owns each course
 router.get("/courses", (req, res, next) => {
-    Course.find({}, null, {sort: {title: 1}}, (err, courses) => {
-        if(err) {
-            return next(err);
-        } else {
-            res.status(200);
-            res.json(courses);
-        }
+    Course.find({}, null, {sort: {title: 1}})
+        .populate({ path: "user", select: "firstName lastName -_id"})
+        .exec( (err, courses) => {
+            if(err) {
+                return next(err);
+            } else {
+                res.status(200);
+                res.json(courses);
+            }
+        })
     });
-});
+        
+        /**/
 
 //Returns a specific course - including the user that owns the course
 router.get("/courses/:cID", (req, res, next) => {
@@ -89,6 +93,10 @@ router.get("/courses/:cID", (req, res, next) => {
 
 // Creates a course, sets the Location header to the URI for the course, and returns no content
 router.post("/courses",authenticateUser, (req, res, next) => {
+
+    // Sets the user property to the authenticated user that creates the course
+    req.body.user = req.currentUser._id;
+
     const course = new Course(req.body);
 
     course.save( (err, course) => {
