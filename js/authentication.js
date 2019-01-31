@@ -41,6 +41,11 @@ const authentication = {
     
             }); // Finished working with the user to authenticate
     
+        // If credentials not found - authentication header
+        } else {
+            message = "Authentication header not found";
+            console.warn(message);
+            res.status(401).json({message: "Authentication header not found"});
         } 
     
     } // Finished authentication function
